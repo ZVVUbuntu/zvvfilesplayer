@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout,
 							QFileSystemModel, QAbstractItemView, QHeaderView, 
 							QTreeView, QLineEdit, QAction)
 from PyQt5.QtGui import QIcon, QDesktopServices
-from PyQt5.QtCore import (Qt, QDir, QSize, QStorageInfo, QStandardPaths, QUrl)
+from PyQt5.QtCore import (Qt, QDir, QSize, QStorageInfo, QStandardPaths, QUrl, QFileInfo)
 from . import flowbox, styles, paths, zbutton
 
 
@@ -167,14 +167,16 @@ class Panel(QWidget):
 			
 	def add_mount_drives(self):
 		"""Add mount drives"""
-		show_fs = ['fuseblk', 'ext4', 'FAT32', 'NTFS',]
+		show_fs = ['fuseblk', 'ext4', 'FAT32', 'NTFS', 'vfat',]
 		for drive in QStorageInfo.mountedVolumes():
 			if drive.isValid() and drive.isReady():
 				if drive.fileSystemType() in show_fs:
-					size = '{0:.1f} GB'.format(drive.bytesTotal()/1000/1000/1000)
-					title = '{name} ({size})'.format(size=size, name=drive.displayName())
 					path = drive.rootPath()
-					self.add_drive_button(root_path=path, icon=':/hard_disk.png', title=title)
+					if QFileInfo(path).isReadable():
+						size = '{0:.1f} GB'.format(drive.bytesTotal()/1000/1000/1000)
+						name = list(filter(None, os.path.split(path)))[-1]
+						title = '{name} ({size})'.format(size=size, name=name)
+						self.add_drive_button(root_path=path, icon=':/hard_disk.png', title=title)
 							
 	def add_drive_button(self, root_path='', icon='', title=''):
 		"""Add drive button"""
